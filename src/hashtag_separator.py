@@ -1,9 +1,11 @@
 #https://stackoverflow.com/questions/8870261/how-to-split-text-without-spaces-into-list-of-words/11642687#11642687
+import os
 
 from math import log
 
 # Build a cost dictionary, assuming Zipf's law and cost = -math.log(probability).
-words = open('./words-by-frequency.txt').read().split()
+DATA_PATH = os.path.join('..','data','meta','words-by-frequency.txt')
+words = open(DATA_PATH).read().split()
 wordcost = dict((k, log((i+1)*log(len(words)))) for i,k in enumerate(words))
 maxword = max(len(x) for x in words)
 
