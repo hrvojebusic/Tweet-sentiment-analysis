@@ -3,6 +3,11 @@
 .idea/
 .vscode
 
+## Data
+train_pos_full.txt
+train_neg_full.txt
+parsed_tweets.csv
+
 ## -- Python from here --
 
 # Byte-compiled / optimized / DLL files
