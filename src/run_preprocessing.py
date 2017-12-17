@@ -65,11 +65,14 @@ def process_test_data():
             'replace_emoticons' : True,
             'split_hashtags' : True,
             'emphasize_punctuation': True,
+            'remove_small_words': True,
+            'remove_non_chars': True,
+            'check_tweet_emphasis' : True,
             'remove_numbers' : True,
             'remove_stopwords' : True,
             'infer_sentiment' : True,
-            'stem' : True,
-            'lemmatize' : True
+            'stem' : False,
+            'lemmatize' : False
         }
 
     test_df.text = preprocess_tweets(test_df, 'text', parameters)

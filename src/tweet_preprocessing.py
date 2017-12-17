@@ -42,8 +42,8 @@ def remove_numbers(tweet):
     special_chars = ['.', ',', ':', '+', '-', '*', '/', '%', '_']
     words = re.split(r'\s+', tweet)
     new_words = []
-    
-    for word in words:    
+
+    for word in words:
         for char in special_chars:
             word = word.replace(char, '')
         if word.isdigit():
@@ -52,6 +52,15 @@ def remove_numbers(tweet):
             new_words.append(word)
         
     return ' '.join(new_words)
+
+def remove_numbers2(tweet):
+    words = re.split(r'\s+', tweet)
+
+    def has_numbers(input_string):
+        return any(char.isdigit() for char in input_string)
+
+    words = list(filter(lambda x: not has_numbers(x), words))
+    return ' '.join(words)
 
 def replace_emoticons(tweet):
     """
@@ -155,6 +164,27 @@ def remove_stopwords(tweet, list_of_stopwords=None):
     words = list(filter(lambda x: x not in list_of_stopwords, words))
     return ' '.join(words)
 
+def remove_small_words(tweet):
+    return ' '.join([w for w in tweet.split() if len(w) > 1])
+
+def remove_non_chars(tweet):
+    words = re.split(r'\s+', tweet)
+    words = list(map(lambda x: re.sub("[\"\'\.\,\:\;\@\_\-\+\*\\\/\%\_\(\)\[\]\{\}]", '', x), words))
+    words = list(filter(lambda x: x != '<' and x != '>', words))
+    return ' '.join(words)
+
+def check_word_emphasis(word):
+    new_word = re.sub(r'(.)\1{2,}', r'\1', word)
+    if len(new_word) != len(word):
+        return '<<emphasis>>  ' + spell(new_word)
+    else:
+        return word
+
+def check_tweet_emphasis(tweet):
+    words = re.split(r'\s+', tweet)
+    words = list(map(check_word_emphasis, words)) 
+    return ' '.join(words)
+
 def infer_sentiment(tweet, positive_words, negative_words):
     """
 
@@ -247,11 +277,14 @@ def preprocess_tweets(tweets, text_column, parameters=None):
             'replace_emoticons' : True,
             'split_hashtags' : True,
             'emphasize_punctuation': True,
+            'remove_small_words': True,
+            'remove_non_chars' : True,
+            'check_tweet_emphasis': True,
             'remove_numbers' : True,
             'remove_stopwords' : True,
             'infer_sentiment' : True,
-            'stem' : True,
-            'lemmatize' : True
+            'stem' : False,
+            'lemmatize' : False
         }
 
     start_time = time.time()
@@ -281,8 +314,20 @@ def preprocess_tweets(tweets, text_column, parameters=None):
         content = list(map(emphasize_punctuation, content))
         print('Emphasizing punctuation: FINISHED')
 
+    if parameters['remove_small_words']:
+        content = list(map(remove_small_words, content))
+        print('Removing small words: FINISHED')
+
+    if parameters['remove_non_chars']:
+        content = list(map(remove_non_chars, content))
+        print('Removing non-characters: FINISHED')
+
+    if parameters['check_tweet_emphasis']:
+        content = list(map(check_tweet_emphasis, content))
+        print('Checking tweet emphasis: FINISHED')
+
     if parameters['remove_numbers']:
-        content = list(map(remove_numbers, content))
+        content = list(map(remove_numbers2, content))
         print('Removing numbers: FINISHED')
 
     if parameters['remove_stopwords']:
