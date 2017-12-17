@@ -55,7 +55,22 @@ def process_test_data():
     test_df = pd.DataFrame({ 'text' : test_full })
 
     print('Processing test tweets...')
-    test_df = preprocess_tweets(test_df, 'text')
+
+    parameters = {
+            'filter_duplicates' : False,
+            'remove_user_tags' : True,
+            'remove_url_tags' : True,
+            'replace_emoticons' : True,
+            'split_hashtags' : True,
+            'emphasize_punctuation': True,
+            'remove_numbers' : True,
+            'remove_stopwords' : True,
+            'infer_sentiment' : True,
+            'stem' : True,
+            'lemmatize' : True
+        }
+
+    test_df = preprocess_tweets(test_df, 'text', parameters)
 
     path_save_train = path.join('..', 'data', 'parsed', 'test_full.csv')
     print('Saving processed test tweets to: {}'.format(path_save_train))
