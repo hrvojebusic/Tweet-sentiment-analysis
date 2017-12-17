@@ -238,9 +238,10 @@ def lemmatize(tweet, lemmatizer=None):
     words = list(map(lambda x: lemmatize_single(x, lemmatizer), words))
     return ' '.join(words)
 
-def preprocess_tweets(tweets, parameters=None):
+def preprocess_tweets(tweets, text_column, parameters=None):
     if parameters == None: # Set default parameters
         parameters = {
+            'filter_duplicates' : True,
             'remove_user_tags' : True,
             'remove_url_tags' : True,
             'replace_emoticons' : True,
@@ -254,67 +255,71 @@ def preprocess_tweets(tweets, parameters=None):
         }
 
     start_time = time.time()
+    content = tweets[text_column].copy()
+
+    if parameters['filter_duplicates']:
+        content = content.drop_duplicates()
+        print('Filtering duplicates: FINISHED')
 
     if parameters['remove_user_tags']:
-        tweets = list(map(remove_user, tweets))
+        content = list(map(remove_user, content))
         print('Removing USER tags: FINISHED')
 
     if parameters['remove_url_tags']:
-        tweets = list(map(remove_url, tweets))
+        content = list(map(remove_url, content))
         print('Removing URL tags: FINISHED')
 
     if parameters['replace_emoticons']:
-        tweets = list(map(replace_emoticons, tweets))
+        content = list(map(replace_emoticons, content))
         print('Replacing emoticons: FINISHED')
 
     if parameters['split_hashtags']:
-        tweets = list(map(split_hashtags, tweets))
+        content = list(map(split_hashtags, content))
         print('Splitting hashtags: FINISHED')
 
     if parameters['emphasize_punctuation']:
-        tweets = list(map(emphasize_punctuation, tweets))
+        content = list(map(emphasize_punctuation, content))
         print('Emphasizing punctuation: FINISHED')
 
     if parameters['remove_numbers']:
-        tweets = list(map(remove_numbers, tweets))
+        content = list(map(remove_numbers, content))
         print('Removing numbers: FINISHED')
 
     if parameters['remove_stopwords']:
         list_of_stopwords = stopwords.words('english')
-        tweets = list(map(lambda x: remove_stopwords(x, list_of_stopwords), tweets))
+        content = list(map(lambda x: remove_stopwords(x, list_of_stopwords), content))
         print('Removing stopwords: FINISHED')
 
     if parameters['infer_sentiment']:
         pw = load_positive_words()
         nw = load_negative_words()
-        tweets = list(map(lambda x: infer_sentiment(x, pw, nw), tweets))
+        content = list(map(lambda x: infer_sentiment(x, pw, nw), content))
         print('Inferring sentiment: FINISHED')
 
     if parameters['stem']:
         stemmer = LancasterStemmer()
-        tweets = list(map(lambda x: stem(x, stemmer), tweets))
+        content = list(map(lambda x: stem(x, stemmer), content))
         print('Stemming: FINISHED')
 
     if parameters['lemmatize']:
         lemmatizer = WordNetLemmatizer()
-        tweets = list(map(lambda x: lemmatize(x, lemmatizer), tweets))
+        content = list(map(lambda x: lemmatize(x, lemmatizer), content))
         print('Lemmatizing: FINISHED')
 
     end_time = time.time()
     print('Time elapsed (s): {}'.format(end_time - start_time))
 
-    return tweets
+    df = pd.DataFrame({ 'parsed' : content })
+    return df
 
 def load_positive_words():
     path = os.path.join('..', 'data', 'sentiment', 'positive-words.txt')
     with open(path, 'r') as f:
         pos_words = f.read().splitlines()
-    return pos_words
+    return set(pos_words)
 
 def load_negative_words():
     path = os.path.join('..', 'data', 'sentiment', 'negative-words.txt')
     with open(path, 'r') as f:
         neg_words = f.read().splitlines()
-    return neg_words
-
-print(preprocess_tweets(['12%323 Sebastijan ! <user> <url> touched !! me in inappropriate places, he is a douche :( #helloworld'], None))
+    return set(neg_words)

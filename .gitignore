@@ -5,8 +5,13 @@
 
 ## Data
 train_pos_full.txt
+train_pos_full.csv
+
 train_neg_full.txt
+train_neg_full.csv
+
 parsed_tweets.csv
+test_full.csv
 
 ## -- Python from here --
 
