@@ -52,9 +52,11 @@ def process_test_data():
     with open(path_read_test, 'r') as f:
         test_full = f.read().splitlines()
     print('Read tweets: {}'.format(len(test_full)))
-    test_df = pd.DataFrame({ 'text' : test_full })
 
     print('Processing test tweets...')
+    id_ = list(map(lambda x: x.split(',', 1)[0], test_full))
+    text = list(map(lambda x: x.split(',', 1)[1], test_full))
+    test_df = pd.DataFrame({ 'id' : id_, 'text' : text })
 
     parameters = {
             'filter_duplicates' : False,
@@ -70,7 +72,7 @@ def process_test_data():
             'lemmatize' : True
         }
 
-    test_df = preprocess_tweets(test_df, 'text', parameters)
+    test_df.text = preprocess_tweets(test_df, 'text', parameters)
 
     path_save_train = path.join('..', 'data', 'parsed', 'test_full.csv')
     print('Saving processed test tweets to: {}'.format(path_save_train))
