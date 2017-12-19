@@ -10,16 +10,205 @@ from hashtag_separator import infer_spaces
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from nltk.stem.lancaster import LancasterStemmer
+from unicodedata import numeric
 
-def remove_user(tweet):
+
+def check_tweet_emphasis(tweet):
     """
-    Removes '<user>' tag from a tweet.
-    INPUT: 
+    Performs check whether words in a tweet have 3 or 
+    more repeating characters. If the word has 3 or 
+    more repeating characters, word will be replaced
+    by one that matches the original word as close as 
+    possible repeated twice, otherwise original word 
+    is returned.
+    """
+    def check_word_emphasis(word):
+        new_word = re.sub(r'(.)\1{2,}', r'\1', word)
+        if len(new_word) != len(word):
+            spelled_word = spell(new_word)
+            return spelled_word + ' ' + spelled_word
+        else:
+            return word
+
+    words = re.split(r'\s+', tweet)
+    words = list(map(check_word_emphasis, words)) 
+    return ' '.join(words)
+
+
+def expand_contractions(tweets):
+    """
+    Expands some of the popular contractions used in tweets.
+    INPUT:
+        tweet: original tweet as string
+    OUTPUT:
+        tweet with some of the contractions expanded
+    """
+    """
+    swaps = {
+        'im': 'i am',
+        "i'm": 'i am',
+        "i'd": 'i would',
+        'youre': 'you are',
+        "you're": 'you are',
+        "he's": 'he is',
+        "she's": 'she is',
+        "can't": 'can not',
+        'cant': 'can not',
+        "don't": 'do not',
+        'dont': 'do not',
+        "won't": 'will not',
+        'wont': 'will not',
+        "haven't": 'have not',
+        'havent': 'have not',
+        'tho': 'though',
+        'tha': 'the',
+        'rt': 'retweet',
+        "who's": 'who is',
+        'whos': 'who is',
+        "what's": 'what is',
+        'whats': 'what is',
+        'rt': 'retweet'
+    }
+
+    words = re.split(r'\s+', tweet)
+    new_words = []
+
+    for word in words:
+        if word.lower() in swaps:
+            new_words.append(swaps[word.lower()])
+        else:
+            new_words.append(word)
+
+    return ' '.join(new_words)
+    """
+
+    tweets = tweets.str.replace('n\'t', ' not', case=False)
+    tweets = tweets.str.replace('i\'m', 'i am', case=False)
+    tweets = tweets.str.replace('\'re', ' are', case=False)
+    tweets = tweets.str.replace('it\'s', 'it is', case=False)
+    tweets = tweets.str.replace('that\'s', 'that is', case=False)
+    tweets = tweets.str.replace('\'ll', ' will', case=False)
+    tweets = tweets.str.replace('\'l', ' will', case=False)
+    tweets = tweets.str.replace('\'ve', ' have', case=False)
+    tweets = tweets.str.replace('\'d', ' would', case=False)
+    tweets = tweets.str.replace('he\'s', 'he is', case=False)
+    tweets = tweets.str.replace('what\'s', 'what is', case=False)
+    tweets = tweets.str.replace('who\'s', 'who is', case=False)
+    tweets = tweets.str.replace('\'s', '', case=False)
+
+    return tweets
+
+
+def infer_sentiment(tweet, positive_words, negative_words):
+    """
+    Expands tweet with positive or negative emphasis depending on
+    whether word from a tweet is a part of collection of positive 
+    or negative words.
+    INPUT:
         tweet: original tweet as a string
-    OUTPUT: 
-        tweet with <user> tags removed
+    OUTPUT:
+        tweet with positive and negative words emphasized
     """
-    return tweet.replace('<user>', '')
+    words = re.split(r'\s+', tweet)
+    new_words = []
+    
+    for word in words:
+        if word in positive_words:
+            new_words.append('positive')
+        elif word in negative_words:
+            new_words.append('negative')
+        new_words.append(word)
+    
+    return ' '.join(new_words)
+
+
+def lemmatize(tweet, lemmatizer=None):
+    """
+    Lemmatizes all words in a tweet with the given lemmatizer.
+    If no lemmatizer is provided, default 'WordNetLemmatizer'
+    is used.
+    INPUT:
+        tweet: original tweet as a string
+        lemmatizer: lemmatizer to be used for lemmatization
+    OUTPUT:
+        tweet with all of its words lemmatized
+    """
+    def lemmatize_single(word, lemmatizer):
+        try:
+            return lemmatizer.lemmatize(word).lower()
+        except:
+            return word
+
+    words = re.split(r'\s+', tweet)
+    if lemmatizer == None:
+        lemmatizer = WordNetLemmatizer()
+    words = list(map(lambda x: lemmatize_single(x, lemmatizer), words))
+    return ' '.join(words)
+
+
+def remove_non_characters(tweet):
+    """
+    Removes non-characters from a tweet.
+    INPUT:
+        tweet: original tweet as a string
+    OUTPUT:
+        tweet with non-characters removed
+    """
+    tweet = re.sub("[\"\'\.\,\:\;\@\_\-\+\*\\\/\%\_\(\)\[\]\{\}\&\!\?\~\=\^]", '', tweet)
+    return ' '.join([w if w!='<' and w!='>' else '' for w in re.split(r'\s+', tweet)])
+
+
+def remove_numbers(tweet):
+    """
+    Replaces all numbers in a tweet with the word
+    'number'.
+    INPUT:
+        tweet: original tweet as a string
+    OUTPUT:
+        tweet with all numbers removed
+    """
+    words = re.split(r'\s+', tweet)
+    new_words = []
+
+    for word in words:
+        if bool(re.search(r'\d', word)):
+            new_words.append('number')
+        else:
+            new_words.append(word)
+        
+    return ' '.join(new_words)
+
+
+def remove_small_words(tweet):
+    """
+    Removes small words from a tweet. Small words are those with
+    only one character.
+    INPUT:
+        tweet: original tweet as a string
+    OUTPUT:
+        tweet filtered from small words
+    """
+    return ' '.join([word for word in tweet.split() if not word.isalpha() or len(word) > 1])
+
+
+def remove_stopwords(tweet, list_of_stopwords=None):
+    """
+    Removes stopwords from the tweet. Arbitrary stopword list 
+    can be specified through the second method argument. List 
+    of english stopwords will be used if no other stopwords 
+    are specified.
+    INPUT:
+        tweet: original tweet as a string
+        list_of_stopwords: list of stopwords
+    OUTPUT:
+        tweet filtered from stopwords
+    """
+    words = re.split(r'\s+', tweet)
+    if list_of_stopwords == None:
+        list_of_stopwords = stopwords.words('english')
+    words = list(filter(lambda x: x not in list_of_stopwords, words))
+    return ' '.join(words)
+
 
 def remove_url(tweet):
     """
@@ -31,74 +220,106 @@ def remove_url(tweet):
     """
     return tweet.replace('<url>', '')
 
-def remove_numbers(tweet):
+
+def remove_user(tweet):
     """
-    Removes numbers from a tweet.
-    INPUT:
+    Removes '<user>' tag from a tweet.
+    INPUT: 
         tweet: original tweet as a string
-    OUTPUT:
-        tweet with all numbers removed
+    OUTPUT: 
+        tweet with <user> tags removed
     """
-    special_chars = ['.', ',', ':', '+', '-', '*', '/', '%', '_']
-    words = re.split(r'\s+', tweet)
-    new_words = []
+    return tweet.replace('<user>', '')
 
-    for word in words:
-        for char in special_chars:
-            word = word.replace(char, '')
-        if word.isdigit():
-            continue
-        else:
-            new_words.append(word)
-        
-    return ' '.join(new_words)
-
-def remove_numbers2(tweet):
-    words = re.split(r'\s+', tweet)
-
-    def has_numbers(input_string):
-        return any(char.isdigit() for char in input_string)
-
-    words = list(filter(lambda x: not has_numbers(x), words))
-    return ' '.join(words)
 
 def replace_emoticons(tweet):
     """
-    Replaces emoticons in tweet with descriptive tags.
+    Replaces emoticons in a tweet with descriptive word.
     INPUT:
         tweet: original tweet as a string
     OUTPU:
         tweet with emoticons replaced
     """
-    heart_emoticons = ('<<positive>>', ['<3', '❤']) 
+    heart_emoticons = ['<3', '❤']
 
-    positive_emoticons = ('<<positive>>', [':)', ';)', ':]', ':-]', ':-)', ';-)', ":')", ':*', ':-*', 
-                                              ':D', ':-D', '8-D', 'xD', 'XD', ':P', ':-P',
-                                              '(:', '(;', '[:', '[-:', '(-:', '(-;', "(':", '*:', '*-:', ])
+    positive_emoticons = [
+        ':)', ';)', ':-)', ';-)', ":')", ':*', ':-*', '=)', '[:', '[-:',
+        ':D', ':-D', '8-D', 'xD', 'XD', ':P', ':-P', ':p', ':-p', ':d', ';d',
+        '(:', '(;', '(-:', '(-;', "(':", '*:', '*-:', '(=', ':]', ':-]'
+        ]
     
-    negative_emoticons = ('<<negative>>', [':(', ':((', ':-(', ":'(",
-                                              '):', ')):', ')-:', ")':"])
+    negative_emoticons = [
+        ':(', ':((', ';(', ':-(', ":'(", '=(',
+        '):', ')):', ');', ')-:', ")':", ')='
+        ]
     
-    emoticons = [heart_emoticons, negative_emoticons]
+    words = re.split(r'\s+', tweet)
+    new_words = []
 
-    def replace_parenth(arr):
-        return [text.replace(')', '[)}\]]').replace('(', '[({\[]') for text in arr]
+    for word in words:
+        if word in heart_emoticons or word in positive_emoticons:
+            new_words.append('positive')
+        elif word in negative_emoticons:
+            new_words.append('negative')
+        else:
+            new_words.append(word)
     
-    def regex_join(arr):
-        return '(' + '|'.join( arr ) + ')'
+    return ' '.join(new_words)
 
-    emoticons_regex = [ (repl, re.compile(regex_join(replace_parenth(regx))) ) \
-            for (repl, regx) in emoticons ]
-    
-    for (repl, regx) in emoticons_regex :
-        tweet = re.sub(regx, ' '+repl+' ', tweet)
-    
-    return tweet
+
+def replace_emoticons_with_tags(tweet):
+    """
+    Replaces emoticons in a tweet with tags.
+    INPUT:
+        tweet: original tweet as a string
+    OUTPU:
+        tweet with emoticons replaced
+    """
+    hearts = set(['<3', '❤'])
+
+    happy_faces = set([
+        ':)', ":')", '=)', ':-)', ':]', ":']", '=]', ':-]', ':d',
+        '(:', "(':", '(=', '(-:', '[:', "[':", '[=', '[-:' 
+        ])
+
+    sad_faces = set([
+        ':(', ":'(", '=(', ':-(', ':[', ":'[", '=[', ':-[',
+        '):', ")':", ')=', ')-:', ']:', "]':", ']=', ']-:'
+    ])
+
+    neutral_faces = set([
+        ':/', ':\\', ':|',
+        '/:', '\\:', '|:'
+    ])
+
+    cheeky_faces = set([
+        ':P', ':p', ":'P", ":'p", '=P', '=p', ':-P', ":-p"
+    ])
+
+    words = re.split(r'\s+', tweet)
+    new_words = []
+
+    for word in words:
+        if word in hearts:
+            new_words.append('<heart>')
+        elif word in happy_faces:
+            new_words.append('<smile>')
+        elif word in neutral_faces:
+            new_words.append('<neutralface>')
+        elif word in sad_faces:
+            new_words.append('<sadface>')
+        elif word in cheeky_faces:
+            new_words.append('<lolface>')
+        else:
+            new_words.append(word)
+
+    return ' '.join(new_words)
+
 
 def split_hashtags(tweet):
     """
-    Tweet whose hashtags will be split into words that
-    are mentioned in those hashtags.
+    Splits all tweet hashtags into words that are
+    mentioned in those hashtags.
     INPUT:
         tweet: original tweet as a string
     OUTPUT:
@@ -118,104 +339,6 @@ def split_hashtags(tweet):
     
     return ' '.join(new_words)
 
-def emphasize_punctuation(tweet):
-    words = re.split(r'\s+', tweet)
-    new_words = []
-    translation = str.maketrans("","", string.punctuation)
-
-    for word in words:
-        nubbed = word.replace('?', '').replace('!', '').replace('.', '')
-
-        if not nubbed and len(word) >= 2:
-            new_words.append('<<emphasis>>')
-        
-        if len(word) != len(nubbed):
-            new_words.append(word.translate(translation))
-        else:
-            new_words.append(word)
-    
-    return ' '.join(new_words)
-
-def lower(tweets):
-    """
-    Lowers all characters in tweets.
-    INPUT:
-        tweets: list of tweets
-    OUTPUT:
-        list of tweets with all characters lowered
-    """
-    return [tweet.lower() for tweet in tweets]
-
-def remove_stopwords(tweet, list_of_stopwords=None):
-    """
-    Removes stopwords from the tweet. Arbitrary stopword list 
-    can be specified through the second method argument. List 
-    of english stopwords will be used if no other stopwords 
-    are specified.
-    INPUT:
-        tweet: original tweet as a string
-        list_of_stopwords: list of stopwords
-    OUTPUT:
-        words filtered from stopwords
-    """
-    words = re.split(r'\s+', tweet)
-    if list_of_stopwords == None:
-        list_of_stopwords = stopwords.words('english')
-    words = list(filter(lambda x: x not in list_of_stopwords, words))
-    return ' '.join(words)
-
-def remove_small_words(tweet):
-    return ' '.join([w for w in tweet.split() if len(w) > 1])
-
-def remove_non_chars(tweet):
-    words = re.split(r'\s+', tweet)
-    words = list(map(lambda x: re.sub("[\"\'\.\,\:\;\@\_\-\+\*\\\/\%\_\(\)\[\]\{\}]", '', x), words))
-    words = list(filter(lambda x: x != '<' and x != '>', words))
-    return ' '.join(words)
-
-def check_word_emphasis(word):
-    new_word = re.sub(r'(.)\1{2,}', r'\1', word)
-    if len(new_word) != len(word):
-        return '<<emphasis>>  ' + spell(new_word)
-    else:
-        return word
-
-def check_tweet_emphasis(tweet):
-    words = re.split(r'\s+', tweet)
-    words = list(map(check_word_emphasis, words)) 
-    return ' '.join(words)
-
-def infer_sentiment(tweet, positive_words, negative_words):
-    """
-
-    INPUT:
-        tweet: original tweet
-    OUTPUT:
-        tweet 
-    """
-    words = re.split(r'\s+', tweet)
-    new_words = []
-    
-    for word in words:
-        if word in positive_words:
-            new_words += ['<<positive>>', word]
-        elif word in negative_words:
-            new_words += ['<<negative>>', word]
-        else:
-            new_words.append(word)
-    
-    return ' '.join(new_words)
-
-def stem_single(word, stemmer):
-    """
-    Stemms single word.
-    INPUT:
-        word: word to be stemmed
-        stemmer: stemmer to be used for stemming
-    OUTPUT:
-        stemmed word
-    """
-    return stemmer.stem(word)
 
 def stem(tweet, stemmer=None):
     """
@@ -228,61 +351,164 @@ def stem(tweet, stemmer=None):
     OUPUT:
         original tweet with all its words stemmed
     """
+    def stem_single(word, stemmer):
+        return stemmer.stem(word)
+
     words = re.split(r'\s+', tweet)
     if stemmer == None:
         stemmer = LancasterStemmer()
     words = list(map(lambda x: stem_single(x, stemmer), words))
     return ' '.join(words)
 
-def lemmatize_single(word, lemmatizer):
-    """
-    Lemmatizes single word. If the word can not be lemmatized, it
-    will be returned in its original form.
-    INPUT:
-        word: word to be lemmatized
-        lemmatizer: lemmatizer to be used for lemmatization
-    OUTPUT:
-        lemmatized word or original word if lemmatization could
-        not be performed
-    """
-    try:
-        temp = lemmatizer.lemmatize(word).lower()
-        return temp
-    except:
-        return word
 
-def lemmatize(tweet, lemmatizer=None):
+def tag_hashtags(tweet):
     """
-    Lemmatizes all words in a tweet with the given lemmatizer.
-    If no lemmatizer is provided, default 'WordNetLemmatizer'
-    is used.
+    Marks hashtags in tweet.
     INPUT:
-        tweet: tweet with words to be lemmatized
-        lemmatizer: lemmatizer to be used for lemmatization
+        tweet: original tweet as a string
     OUTPUT:
-        original tweet with all its words lemmatized
+        tweet with hashtags marked
     """
     words = re.split(r'\s+', tweet)
-    if lemmatizer == None:
-        lemmatizer = WordNetLemmatizer()
-    words = list(map(lambda x: lemmatize_single(x, lemmatizer), words))
+    new_words = []
+
+    for word in words:
+        if word and word[0]=='#':
+            new_words.append('<hashtag>')
+        new_words.append(word)
+
+    return ' '.join(new_words)
+
+
+def tag_numbers(tweet):
+    """
+    Marks numbers in tweet.
+    INPUT:
+        tweet: original tweet as a string
+    OUTPUT:
+        tweet with numbers marked
+    """
+    def is_number(s):
+        try:
+            float(s)
+            return True
+        except ValueError:
+            pass
+        try:
+            numeric(s)
+            return True
+        except (TypeError, ValueError):
+            pass
+        return False
+
+    words = re.split(r'\s+', tweet)
+    new_words = []
+
+    for word in words:
+        trimmed = re.sub('[,\.:%_\-\+\*\/\%\_]', '', word)
+        if is_number(trimmed):
+            new_words.append('<number>')
+        new_words.append(word)
+
+    return ' '.join(new_words)
+
+
+def tag_repeated_characters(tweet):
+    """
+    Marks words with repeating characters in tweet.
+    Repetition needs to be greater or equal than three.
+    INPUT:
+        tweet: original tweet as a string
+    OUTPUT:
+        tweet with words with repeating characters marked
+    """
+    def tag_repeated(word):
+        return re.sub(r'([a-z])\1\1+$', r'\1 <elong>', word)
+
+    words = re.split(r'\s+', tweet)
+    words = list(map(tag_repeated, words))
     return ' '.join(words)
 
-def preprocess_tweets(tweets, text_column, parameters=None):
-    if parameters == None: # Set default parameters
+
+def tag_repeated_punctuations(tweet):
+    """
+    Marks repeated punctuations in tweet.
+    INPUT:
+        tweet: original tweet as a string
+    OUTPUT:
+        tweet with repeating punctuations marked
+    """
+    for symb in ['!', '?', '.', ',']:
+        regex = '(\\' + symb + '( *)){2,}'
+        tweet = re.sub(regex, ' <repeat> ' + symb, tweet)
+    return tweet
+
+
+def preprocess_tweets(tweets, text_column, train=True, parameters=None):
+    """
+    Performs tweet preprocessing on the data frame passed
+    as the first argument with column containing tweets specified.
+    Default preprocessing parameters are:
+        filter_duplicates = True
+        remove_url_tags = True
+        remove_user_tags = True
+        replace_emoticons_with_tags = False
+        tag_hashtags = False
+        tag_numbers = False
+        tag_repeated_characters = False
+        tag_repeated_punctuations = False
+        expand_contractions = True
+        check_tweet_emphasis = True
+        split_hashtags = True
+        remove_stopwords = True
+        remove_small_words = True
+        remove_numbers = True
+        infer_sentiment = True
+        replace_emoticons = True
+        remove_non_characters = True
+        stem = False
+        lemmatize = False
+    Custom preprocessing parameters can be specified.
+    INPUT
+        tweets: data frame containing original tweets
+        text_column: column name containing tweet content in the data frame
+        train: specifies whether tweets being processed belong to the training set
+        parameters: custom preprocessing parameters
+    OUTPUT:
+        data frame containing processed tweets
+    """
+
+    def load_positive_words():
+        path = os.path.join('..', 'data', 'sentiment', 'positive-words.txt')
+        with open(path, 'r') as f:
+            pos_words = f.read().splitlines()
+        return set(pos_words)
+
+    def load_negative_words():
+        path = os.path.join('..', 'data', 'sentiment', 'negative-words.txt')
+        with open(path, 'r') as f:
+            neg_words = f.read().splitlines()
+        return set(neg_words)
+
+    if parameters == None: # Set of default parameters
         parameters = {
             'filter_duplicates' : True,
-            'remove_user_tags' : True,
             'remove_url_tags' : True,
-            'replace_emoticons' : True,
-            'split_hashtags' : True,
-            'emphasize_punctuation': True,
-            'remove_small_words': True,
-            'remove_non_chars' : True,
+            'remove_user_tags' : True,
+            'replace_emoticons_with_tags' : False,
+            'tag_hashtags' : False,
+            'tag_numbers' : False,
+            'tag_repeated_characters' : False,
+            'tag_repeated_punctuations' : False,
+            'expand_contractions' : True,
             'check_tweet_emphasis': True,
-            'remove_numbers' : True,
+            'split_hashtags' : True,
             'remove_stopwords' : True,
+            'remove_small_words': True,
+            'remove_numbers' : True,
             'infer_sentiment' : True,
+            'replace_emoticons' : True,
+            'remove_non_characters' : True,
             'stem' : False,
             'lemmatize' : False
         }
@@ -290,56 +516,77 @@ def preprocess_tweets(tweets, text_column, parameters=None):
     start_time = time.time()
     content = tweets[text_column].copy()
 
-    if parameters['filter_duplicates']:
+    if parameters['filter_duplicates'] and train:
         content = content.drop_duplicates()
         print('Filtering duplicates: FINISHED')
-
-    if parameters['remove_user_tags']:
-        content = list(map(remove_user, content))
-        print('Removing USER tags: FINISHED')
 
     if parameters['remove_url_tags']:
         content = list(map(remove_url, content))
         print('Removing URL tags: FINISHED')
 
-    if parameters['replace_emoticons']:
-        content = list(map(replace_emoticons, content))
-        print('Replacing emoticons: FINISHED')
+    if parameters['remove_user_tags']:
+        content = list(map(remove_user, content))
+        print('Removing USER tags: FINISHED')
 
-    if parameters['split_hashtags']:
-        content = list(map(split_hashtags, content))
-        print('Splitting hashtags: FINISHED')
+    if parameters['replace_emoticons_with_tags']:
+        content = list(map(replace_emoticons_with_tags, content))
+        print('Replacing emoticons with tags: FINISHED')
 
-    if parameters['emphasize_punctuation']:
-        content = list(map(emphasize_punctuation, content))
-        print('Emphasizing punctuation: FINISHED')
+    if parameters['tag_hashtags']:
+        content = list(map(tag_hashtags, content))
+        print('Tagging hashtags: FINISHED')
 
-    if parameters['remove_small_words']:
-        content = list(map(remove_small_words, content))
-        print('Removing small words: FINISHED')
+    if parameters['tag_numbers']:
+        content = list(map(tag_numbers, content))
+        print('Tagging numbers: FINISHED')
 
-    if parameters['remove_non_chars']:
-        content = list(map(remove_non_chars, content))
-        print('Removing non-characters: FINISHED')
+    if parameters['tag_repeated_characters']:
+        content = list(map(tag_repeated_characters, content))
+        print('Tagging repeated characters: FINISHED')
+
+    if parameters['tag_repeated_punctuations']:
+        content = list(map(tag_repeated_punctuations, content))
+        print('Tagging repeated punctuations: FINISHED')
+
+    if parameters['expand_contractions']:
+        #content = list(map(expand_contractions, content))
+        content = expand_contractions(pd.Series(content)).tolist()
+        print('Expanding contractions: FINISHED')
 
     if parameters['check_tweet_emphasis']:
         content = list(map(check_tweet_emphasis, content))
         print('Checking tweet emphasis: FINISHED')
-
-    if parameters['remove_numbers']:
-        content = list(map(remove_numbers2, content))
-        print('Removing numbers: FINISHED')
+    
+    if parameters['split_hashtags']:
+        content = list(map(split_hashtags, content))
+        print('Splitting hashtags: FINISHED')
 
     if parameters['remove_stopwords']:
         list_of_stopwords = stopwords.words('english')
         content = list(map(lambda x: remove_stopwords(x, list_of_stopwords), content))
         print('Removing stopwords: FINISHED')
 
+    if parameters['remove_small_words']:
+        content = list(map(remove_small_words, content))
+        print('Removing small words: FINISHED')
+
+    if parameters['remove_numbers']:
+        content = list(map(remove_numbers, content))
+        print('Removing numbers: FINISHED')
+
     if parameters['infer_sentiment']:
         pw = load_positive_words()
         nw = load_negative_words()
         content = list(map(lambda x: infer_sentiment(x, pw, nw), content))
         print('Inferring sentiment: FINISHED')
+
+    if parameters['replace_emoticons']:
+        content = list(map(replace_emoticons, content))
+        print('Replacing emoticons: FINISHED')
+
+    if parameters['remove_non_characters']:
+        content = list(map(remove_non_characters, content))
+        print('Removing non-characters: FINISHED')    
 
     if parameters['stem']:
         stemmer = LancasterStemmer()
@@ -354,17 +601,4 @@ def preprocess_tweets(tweets, text_column, parameters=None):
     end_time = time.time()
     print('Time elapsed (s): {}'.format(end_time - start_time))
 
-    df = pd.DataFrame({ 'parsed' : content })
-    return df
-
-def load_positive_words():
-    path = os.path.join('..', 'data', 'sentiment', 'positive-words.txt')
-    with open(path, 'r') as f:
-        pos_words = f.read().splitlines()
-    return set(pos_words)
-
-def load_negative_words():
-    path = os.path.join('..', 'data', 'sentiment', 'negative-words.txt')
-    with open(path, 'r') as f:
-        neg_words = f.read().splitlines()
-    return set(neg_words)
+    return pd.DataFrame({ 'parsed' : content })

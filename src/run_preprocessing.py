@@ -10,77 +10,121 @@ def main():
         print("Invalid command. Expected 'train' or 'test'.")
         return
 
-    if sys.argv[1] == 'train':
-        process_train_data()
-    if sys.argv[1] == 'test':
-        process_test_data()
-    
-
-def process_train_data():
-    path_read_pos_full = path.join('..', 'data', 'dataset', 'train_pos_full.txt')
-    print('Reading positive tweets from: {}'.format(path_read_pos_full))
-    with open(path_read_pos_full, 'r') as f:
-        pos_full = f.read().splitlines()
-    print('Read positive tweets: {}'.format(len(pos_full)))
-    pos_df = pd.DataFrame({ 'text' : pos_full })
-
-    path_read_neg_full = path.join('..', 'data', 'dataset', 'train_neg_full.txt')
-    print('Reading negative tweets from: {}'.format(path_read_neg_full))
-    with open(path_read_neg_full, 'r') as f:
-        neg_full = f.read().splitlines()
-    print('Read negative tweets: {}'.format(len(neg_full)))
-    neg_df = pd.DataFrame({ 'text' : neg_full })
-
-    print('Processing positive tweets...')
-    pos_df = preprocess_tweets(pos_df, 'text')
-
-    print('Processing negative tweets...')
-    neg_df = preprocess_tweets(neg_df, 'text')
-
-    path_save_pos_full = path.join('..', 'data', 'parsed', 'train_pos_full.csv')
-    print('Saving processed positive tweets to: {}'.format(path_save_pos_full))
-    pos_df.to_csv(path_save_pos_full, header=False, index=False)
-
-    path_save_neg_full = path.join('..', 'data', 'parsed', 'train_neg_full.csv')
-    print('Saving processed negative tweets to: {}'.format(path_save_neg_full))
-    neg_df.to_csv(path_save_neg_full, header=False, index=False)
-
-
-def process_test_data():
-    path_read_test = path.join('..', 'data', 'dataset', 'test_data.txt')
-    print('Reading test tweets from: {}'.format(path_read_test))
-    with open(path_read_test, 'r') as f:
-        test_full = f.read().splitlines()
-    print('Read tweets: {}'.format(len(test_full)))
-
-    print('Processing test tweets...')
-    id_ = list(map(lambda x: x.split(',', 1)[0], test_full))
-    text = list(map(lambda x: x.split(',', 1)[1], test_full))
-    test_df = pd.DataFrame({ 'id' : id_, 'text' : text })
-
     parameters = {
-            'filter_duplicates' : False,
-            'remove_user_tags' : True,
-            'remove_url_tags' : True,
-            'replace_emoticons' : True,
-            'split_hashtags' : True,
-            'emphasize_punctuation': True,
-            'remove_small_words': True,
-            'remove_non_chars': True,
-            'check_tweet_emphasis' : True,
-            'remove_numbers' : True,
-            'remove_stopwords' : True,
+            'filter_duplicates' : True,
+            'remove_url_tags' : False,
+            'remove_user_tags' : False,
+            'replace_emoticons_with_tags' : True,
+            'tag_hashtags' : True,
+            'tag_numbers' : True,
+            'tag_repeated_characters' : True,
+            'tag_repeated_punctuations' : True,
+            'expand_contractions' : True,
+            'check_tweet_emphasis': False,
+            'split_hashtags' : False,
+            'remove_stopwords' : False,
+            'remove_small_words': False,
+            'remove_numbers' : False,
             'infer_sentiment' : True,
+            'replace_emoticons' : False,
+            'remove_non_characters' : False,
             'stem' : False,
             'lemmatize' : False
         }
 
-    test_df.text = preprocess_tweets(test_df, 'text', parameters)
+    if sys.argv[1] == 'train':
+        process_train_data(
+            dest_pos_name='train_pos_full.csv',
+            dest_neg_name='train_neg_full.csv',
+            parameters=parameters
+            )
+    if sys.argv[1] == 'test':
+        process_test_data(
+            dest_name='test_full.csv',
+            parameters=parameters
+            )
+    
 
-    path_save_train = path.join('..', 'data', 'parsed', 'test_full.csv')
-    print('Saving processed test tweets to: {}'.format(path_save_train))
-    test_df.to_csv(path_save_train, header=False, index=False)
+def process_train_data(dest_pos_name='train_pos_full.csv', dest_neg_name='train_neg_full.csv', parameters=None):
+    """
+    Processes train tweets. If custom processing parameters are not 
+    defined, default processing parameters will be used as defined
+    in 'tweet_preprocessing' module.
+    INPUT:
+        dest_pos_name: name of the .csv file where processed positive 
+        tweets will be saved
+        dest_neg_name: name of the .csv file where processed negative
+        tweets will be saved
+        parameters: custom processing parameters
+    """
+    path_read_pos_train = path.join('..', 'data', 'dataset', 'train_pos_full.txt')
+    pos_df = read_train_data(path_read_pos_train)
+    print('Positive training tweets read. Count: {}'.format(len(pos_df)))
 
+    path_read_neg_train = path.join('..', 'data', 'dataset', 'train_neg_full.txt')
+    neg_df = read_train_data(path_read_neg_train)
+    print('Negative training tweets read. Count: {}'.format(len(neg_df)))
+
+    print('Processing positive tweets...')
+    pos_df = preprocess_tweets(pos_df, 'text', parameters=parameters)
+    print('Processing negative tweets...')
+    neg_df = preprocess_tweets(neg_df, 'text', parameters=parameters)
+
+    path_save_pos_train = path.join('..', 'data', 'parsed', dest_pos_name)
+    pos_df.to_csv(path_save_pos_train, header=False, index=False)
+    path_save_neg_train = path.join('..', 'data', 'parsed', dest_neg_name)
+    neg_df.to_csv(path_save_neg_train, header=False, index=False)
+    print('Processed training tweets have been successfully saved.')
+
+
+def process_test_data(dest_name='test_full.csv', parameters=None):
+    """
+    Processes test tweets. If custom processing parameters are not 
+    defined, default processing parameters will be used as defined
+    in 'tweet_preprocessing' module.
+    INPUT:
+        dest_name: name of the .csv file where processed tweets will be saved
+        parameters: custom processing parameters
+    """
+    path_read_test = path.join('..', 'data', 'dataset', 'test_data.txt')
+    test_df = read_test_data(path_read_test)
+    print('Test tweets read. Count: {}'.format(len(test_df)))
+
+    print('Processing test tweets...')
+    test_df.text = preprocess_tweets(test_df, 'text', train=False, parameters=parameters)
+
+    path_save_test = path.join('..', 'data', 'parsed', dest_name)
+    test_df.to_csv(path_save_test, header=False, index=False)
+    print('Processed test tweets have been successfully saved.')
+
+
+def read_train_data(file_path):
+    """
+    Reads training tweets.
+    INPUT:
+        file_path: path to file containing training set of tweets
+    OUTPUT:
+        data frame containing training set of tweets
+    """
+    with open(file_path, 'r') as f:
+        train_data = f.read().splitlines()
+    return pd.DataFrame({ 'text' : train_data })
+
+
+def read_test_data(file_path):
+    """
+    Reads test tweets.
+    INPUT:
+        file_path: path to file containing test set of tweets
+    OUTPUT:
+        data frame containing test set of tweets
+    """
+    with open(file_path, 'r') as f:
+        test_data = f.read().splitlines()
+    id_ = list(map(lambda x: x.split(',', 1)[0], test_data))
+    text = list(map(lambda x: x.split(',', 1)[1], test_data))
+    return pd.DataFrame({ 'id' : id_, 'text' : text })
+    
 
 if __name__ == "__main__":
     main()
