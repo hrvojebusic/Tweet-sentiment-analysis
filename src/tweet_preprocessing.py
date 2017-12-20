@@ -21,6 +21,10 @@ def check_tweet_emphasis(tweet):
     by one that matches the original word as close as 
     possible repeated twice, otherwise original word 
     is returned.
+    INPUT:
+        tweet: original tweet as a string
+    OUTPUT:
+        tweet with appropriate words emphasized
     """
     def check_word_emphasis(word):
         new_word = re.sub(r'(.)\1{2,}', r'\1', word)
@@ -35,68 +39,31 @@ def check_tweet_emphasis(tweet):
     return ' '.join(words)
 
 
-def expand_contractions(tweets):
+def expand_contractions(tweet):
     """
-    Expands some of the popular contractions used in tweets.
+    Expands language contractions found in the English vocabulary
+    in the tweet.
     INPUT:
-        tweet: original tweet as string
+        tweet: original tweet as a string
     OUTPUT:
-        tweet with some of the contractions expanded
+        tweet with its contractions expanded
     """
-    """
-    swaps = {
-        'im': 'i am',
-        "i'm": 'i am',
-        "i'd": 'i would',
-        'youre': 'you are',
-        "you're": 'you are',
-        "he's": 'he is',
-        "she's": 'she is',
-        "can't": 'can not',
-        'cant': 'can not',
-        "don't": 'do not',
-        'dont': 'do not',
-        "won't": 'will not',
-        'wont': 'will not',
-        "haven't": 'have not',
-        'havent': 'have not',
-        'tho': 'though',
-        'tha': 'the',
-        'rt': 'retweet',
-        "who's": 'who is',
-        'whos': 'who is',
-        "what's": 'what is',
-        'whats': 'what is',
-        'rt': 'retweet'
-    }
-
-    words = re.split(r'\s+', tweet)
-    new_words = []
-
-    for word in words:
-        if word.lower() in swaps:
-            new_words.append(swaps[word.lower()])
-        else:
-            new_words.append(word)
-
-    return ' '.join(new_words)
-    """
-
-    tweets = tweets.str.replace('n\'t', ' not', case=False)
-    tweets = tweets.str.replace('i\'m', 'i am', case=False)
-    tweets = tweets.str.replace('\'re', ' are', case=False)
-    tweets = tweets.str.replace('it\'s', 'it is', case=False)
-    tweets = tweets.str.replace('that\'s', 'that is', case=False)
-    tweets = tweets.str.replace('\'ll', ' will', case=False)
-    tweets = tweets.str.replace('\'l', ' will', case=False)
-    tweets = tweets.str.replace('\'ve', ' have', case=False)
-    tweets = tweets.str.replace('\'d', ' would', case=False)
-    tweets = tweets.str.replace('he\'s', 'he is', case=False)
-    tweets = tweets.str.replace('what\'s', 'what is', case=False)
-    tweets = tweets.str.replace('who\'s', 'who is', case=False)
-    tweets = tweets.str.replace('\'s', '', case=False)
-
-    return tweets
+    tweet = re.sub("can't", 'can not', tweet, flags=re.I)
+    tweet = re.sub("n't", ' not', tweet, flags=re.I)
+    tweet = re.sub("i'm", 'i am', tweet, flags=re.I)
+    tweet = re.sub("'re", ' are', tweet, flags=re.I)
+    tweet = re.sub("it's", 'it is', tweet, flags=re.I)    
+    tweet = re.sub("that's", 'that is', tweet, flags=re.I)
+    tweet = re.sub("'ll", ' will', tweet, flags=re.I)
+    tweet = re.sub("'l", ' will', tweet, flags=re.I)
+    tweet = re.sub("'ve", ' have', tweet, flags=re.I)
+    tweet = re.sub("'d", ' would', tweet, flags=re.I)
+    tweet = re.sub("he's", 'he is', tweet, flags=re.I)
+    tweet = re.sub("she's", 'she is', tweet, flags=re.I)
+    tweet = re.sub("what's", 'what is', tweet, flags=re.I)
+    tweet = re.sub("who's", 'who is', tweet, flags=re.I)
+    tweet = re.sub("'s", '', tweet, flags=re.I)
+    return tweet
 
 
 def infer_sentiment(tweet, positive_words, negative_words):
@@ -549,8 +516,7 @@ def preprocess_tweets(tweets, text_column, train=True, parameters=None):
         print('Tagging repeated punctuations: FINISHED')
 
     if parameters['expand_contractions']:
-        #content = list(map(expand_contractions, content))
-        content = expand_contractions(pd.Series(content)).tolist()
+        content = list(map(expand_contractions, content))
         print('Expanding contractions: FINISHED')
 
     if parameters['check_tweet_emphasis']:
