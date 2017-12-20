@@ -10,6 +10,19 @@ def create_w2v(tweets, text_column, size, w2v):
 
 
 def build_word_vector(words, size, w2v):
+    """
+    Creates word embeddings vector representation for the
+    words passed as the first argument. Vector size is specified
+    by the second arguments and needs to correspond to the
+    vector size of the given pretrained vocabulary - the third
+    argument.
+    INPUT:
+        words: words whose vector representation is queried
+        size: vector size
+        w2v: pretrained vocabulary vector mapping
+    OUTPUT:
+        word embeddings vector for the given words
+    """
     vec = np.zeros(size).reshape((1, size))
     count = 0.
     for word in words:
