@@ -29,7 +29,9 @@ def main():
             'replace_emoticons' : False,
             'remove_non_characters' : False,
             'stem' : False,
-            'lemmatize' : False
+            'lemmatize' : False,
+            'spell_unrecognized': False,
+            'remove_like': False
         }
 
     if sys.argv[1] == 'train':

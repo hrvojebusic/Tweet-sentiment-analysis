@@ -48,7 +48,10 @@ def expand_contractions(tweet):
     OUTPUT:
         tweet with its contractions expanded
     """
-    tweet = re.sub("can't", 'can not', tweet, flags=re.I)
+    tweet = re.sub("can't", 'cannot', tweet, flags=re.I)
+    tweet = re.sub("cant", 'cannot', tweet, flags=re.I)
+    tweet = re.sub("won't", 'will not', tweet, flags=re.I)
+    tweet = re.sub("wont", 'will not', tweet, flags=re.I)
     tweet = re.sub("n't", ' not', tweet, flags=re.I)
     tweet = re.sub("i'm", 'i am', tweet, flags=re.I)
     tweet = re.sub("'re", ' are', tweet, flags=re.I)
@@ -300,10 +303,16 @@ def split_hashtags(tweet):
         if word and word[0]!='#':
             new_words.append(word)
             continue
-
-        for hash_word in infer_spaces(word[1:].lower()).split(' '):
-            new_words.append(hash_word)
-    
+        
+        new_words.append(word)
+        hash_words = infer_spaces(word[1:].lower()).split(' ')
+        if len(hash_words)>1:
+            for hash_word in hash_words:
+                if (len(hash_word)==1):
+                    continue
+                new_words.append(hash_word)
+        else:
+            new_words.append(word[1:])
     return ' '.join(new_words)
 
 
@@ -407,8 +416,20 @@ def tag_repeated_punctuations(tweet):
     """
     for symb in ['!', '?', '.', ',']:
         regex = '(\\' + symb + '( *)){2,}'
-        tweet = re.sub(regex, ' <repeat> ' + symb, tweet)
+        tweet = re.sub(regex, symb + ' <repeat> ', tweet)
     return tweet
+
+
+def spell_unrecognized(vocab, tweet):
+    words = re.split(r'\s+', tweet)
+    new_words = []
+    for word in words:
+        if word in vocab:
+            new_words.append(word)
+            continue
+        new_words.append(spell(word))
+    return ' '.join(new_words)
+        
 
 
 def preprocess_tweets(tweets, text_column, train=True, parameters=None):
@@ -449,7 +470,10 @@ def preprocess_tweets(tweets, text_column, train=True, parameters=None):
         path = os.path.join('..', 'data', 'sentiment', 'positive-words.txt')
         with open(path, 'r') as f:
             pos_words = f.read().splitlines()
-        return set(pos_words)
+        pos_words = set(pos_words)
+        if parameters['remove_like']:
+            pos_words.remove('like')
+        return pos_words
 
     def load_negative_words():
         path = os.path.join('..', 'data', 'sentiment', 'negative-words.txt')
@@ -563,6 +587,11 @@ def preprocess_tweets(tweets, text_column, train=True, parameters=None):
         lemmatizer = WordNetLemmatizer()
         content = list(map(lambda x: lemmatize(x, lemmatizer), content))
         print('Lemmatizing: FINISHED')
+
+    if parameters['spell_unrecognized']:
+        vocab = set(pd.read_table('../data/glove/glove_words.txt', header=None)[0].tolist())
+        content = list(map(lambda x: spell_unrecognized(vocab, x), content))
+        print('Spelling: FINISHED')
 
     end_time = time.time()
     print('Time elapsed (s): {}'.format(end_time - start_time))
