@@ -8,7 +8,12 @@ import time
 import sys
 from CNN import CNN
 import tensorflow as tf
+from hashtag_separator import infer_spaces
 from data_loader import load_glove_data
+
+def split_hashtag(hashtag):
+    try: return infer_spaces(hashtag[1:]).strip()
+    except: return hashtag[1:]
 
 def get_word_vectors(tweets, glove):
     """
@@ -33,6 +38,17 @@ def get_word_vectors(tweets, glove):
                     word_counter+=1
                     embeddings_counter+=1
                 except:
+                    if (not word.startswith("#")):
+                        word = "#" + word
+                    tokens=split_hashtag(word)
+                    for token in tokens.split():
+                        if((len(token) != 1) or (token == "a") or (token == "i")):
+                            try:
+                                embeddings[i, embeddings_counter, :, :] = words[token].reshape((1,1,-1,1))
+                                embeddings_counter += 1
+                            except:
+                                continue
+                    word_counter += 1
                     continue
     return embeddings
 
