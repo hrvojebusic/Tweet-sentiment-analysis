@@ -13,6 +13,8 @@ train_neg_full.csv
 parsed_tweets.csv
 test_full.csv
 
+glove.twitter.27B.200d.txt
+
 ## -- Python from here --
 
 # Byte-compiled / optimized / DLL files
