@@ -28,6 +28,12 @@ Following dependencies are required in order to run the project:
     >>> import nltk
     >>> nltk.download()
     ```
+  
+* [Tensorflow] - Install tensorflow library (version used **1.4.1**)
+
+    ```sh
+    $ pip install tensorflow
+    ```
 
 ### Files
 
@@ -47,6 +53,8 @@ Following dependencies are required in order to run the project:
 
 * at least **16 GB** of RAM
 * a **graphics card** (optional for faster training involving CNNs)
+
+Tested on Ubuntu 16.04 with Nvidia Tesla K80 GPU with 12 GB GDDR5
 
 ## Kaggle competition
 
