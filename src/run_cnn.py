@@ -187,8 +187,8 @@ def main():
         y_val[pos.shape[0]:, 0] = 1.0
         y_val[:pos.shape[0], 1] = 1.0
         shuffled = np.random.permutation(np.arange(tweets_full['tweet'].shape[0]))
-        validation_tweets = shuffled[:1000]
-        train_tweets_ind = shuffled[1000:]   
+        validation_tweets = shuffled[:2000]
+        train_tweets_ind = shuffled[2000:]   
         x_valid = get_word_vectors(tweets_full.loc[validation_tweets], glove)
         y_valid = y_val[validation_tweets, :]
         path = trainCNN(tweets_full, train_tweets_ind, x_valid, y_valid, y_val, glove)
