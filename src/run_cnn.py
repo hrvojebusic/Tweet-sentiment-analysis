@@ -8,49 +8,8 @@ import time
 import sys
 from CNN import CNN
 import tensorflow as tf
-from hashtag_separator import infer_spaces
+from hashtag_separator import get_word_vectors
 from data_loader import load_glove_data
-
-def split_hashtag(hashtag):
-    try: return infer_spaces(hashtag[1:]).strip()
-    except: return hashtag[1:]
-
-def get_word_vectors(tweets, glove):
-    """
-    Creates word embeddings
-    INPUT:
-        tweets: object containing tweets
-        glove: glove dictionary
-    OUTPUT:
-        embeddings: matrix containing embedings for each word in every tweet
-    """
-    embeddings = np.zeros((tweets.shape[0], 40, 200, 1))
-    for i, tweet in enumerate(tweets['tweet']):
-        words = re.split(r'\s+', tweet)
-        word_counter = 0
-        embeddings_counter = 0
-        
-        for k in range(40):
-            if k<len(words):
-                word = words[word_counter]
-                try:
-                    embeddings[i, embeddings_counter, :, :] = glove[word].reshape((1,1,-1,1))
-                    word_counter+=1
-                    embeddings_counter+=1
-                except:
-                    if (not word.startswith("#")):
-                        word = "#" + word
-                    tokens=split_hashtag(word)
-                    for token in tokens.split():
-                        if((len(token) != 1) or (token == "a") or (token == "i")):
-                            try:
-                                embeddings[i, embeddings_counter, :, :] = words[token].reshape((1,1,-1,1))
-                                embeddings_counter += 1
-                            except:
-                                continue
-                    word_counter += 1
-                    continue
-    return embeddings
 
 
 def trainCNN(tweets, train_tweets_ind, x_valid, y_valid, y_val, glove):    
