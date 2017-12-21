@@ -4,15 +4,17 @@
 .vscode
 
 ## Data
-train_pos_full.txt
-train_pos_full.csv
 
+# Original
+train_pos_full.txt
 train_neg_full.txt
+
+# Parsed
+test_full.csv
+train_pos_full.csv
 train_neg_full.csv
 
-parsed_tweets.csv
-test_full.csv
-
+# Word embeddings
 glove.twitter.27B.200d.txt
 
 ## -- Python from here --
