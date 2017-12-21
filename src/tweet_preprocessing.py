@@ -49,11 +49,12 @@ def expand_contractions(tweet):
         tweet with its contractions expanded
     """
     tweet = re.sub("can't", 'cannot', tweet, flags=re.I)
-    tweet = re.sub("cant", 'cannot', tweet, flags=re.I)
+    #tweet = re.sub("cant", 'can\'t', tweet, flags=re.I)
     tweet = re.sub("won't", 'will not', tweet, flags=re.I)
-    tweet = re.sub("wont", 'will not', tweet, flags=re.I)
+    #tweet = re.sub("wont", 'won\'t', tweet, flags=re.I)
     tweet = re.sub("n't", ' not', tweet, flags=re.I)
     tweet = re.sub("i'm", 'i am', tweet, flags=re.I)
+    #tweet = re.sub("im", 'i am', tweet, flags=re.I)
     tweet = re.sub("'re", ' are', tweet, flags=re.I)
     tweet = re.sub("it's", 'it is', tweet, flags=re.I)    
     tweet = re.sub("that's", 'that is', tweet, flags=re.I)
@@ -66,6 +67,7 @@ def expand_contractions(tweet):
     tweet = re.sub("what's", 'what is', tweet, flags=re.I)
     tweet = re.sub("who's", 'who is', tweet, flags=re.I)
     tweet = re.sub("'s", '', tweet, flags=re.I)
+    tweet = re.sub("\'em", ' \'em', tweet, flags=re.I)
     return tweet
 
 
@@ -213,7 +215,7 @@ def replace_emoticons(tweet):
     heart_emoticons = ['<3', '❤']
 
     positive_emoticons = [
-        ':)', ';)', ':-)', ';-)', ":')", ':*', ':-*', '=)', '[:', '[-:',
+        ':)', ':-)', ';-)', ":')", ':*', ':-*', '[:', '[-:', ';)', '=)',
         ':D', ':-D', '8-D', 'xD', 'XD', ':P', ':-P', ':p', ':-p', ':d', ';d',
         '(:', '(;', '(-:', '(-;', "(':", '*:', '*-:', '(=', ':]', ':-]'
         ]
@@ -384,7 +386,8 @@ def tag_numbers(tweet):
         trimmed = re.sub('[,\.:%_\-\+\*\/\%\_]', '', word)
         if is_number(trimmed):
             new_words.append('<number>')
-        new_words.append(word)
+        else:
+            new_words.append(word)
 
     return ' '.join(new_words)
 
@@ -429,7 +432,17 @@ def spell_unrecognized(vocab, tweet):
             continue
         new_words.append(spell(word))
     return ' '.join(new_words)
-        
+
+def tag_all_words_with_digits(tweet):
+    words = re.split(r'\s+', tweet)
+    new_words = []
+    for word in words:
+        if any(char.isdigit() for char in word):
+            new_words.append('<number>')
+        else:
+            new_words.append(word)
+    return ' '.join(new_words)
+
 
 
 def preprocess_tweets(tweets, text_column, train=True, parameters=None):
@@ -593,6 +606,10 @@ def preprocess_tweets(tweets, text_column, train=True, parameters=None):
         content = list(map(lambda x: spell_unrecognized(vocab, x), content))
         print('Spelling: FINISHED')
 
+    if parameters['tag_all_words_with_digits']:
+        content = list(map(tag_all_words_with_digits, content))
+        print('Tagging all words with digits: FINISHED')
+    
     end_time = time.time()
     print('Time elapsed (s): {}'.format(end_time - start_time))
 
