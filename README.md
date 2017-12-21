@@ -1,52 +1,69 @@
-# Project Text Sentiment Classification
+# Tweet sentiment analysis
 
-The task of this competition is to predict if a tweet message used to contain a positive :) or negative :( smiley, by considering only the remaining text.
+The competition task was to predict if a tweet message used to contain a positive :) or a negative :( smiley, by considering only the remaining text. Our team conducted comprehensive research on the proposed solutions in the relevant literature, as well as past projects and articles which tackled similar issues regarding text sentiment analysis. Full specification of our experiments, as well as results and conclusions drawn can be found in our report.
 
-As a baseline, we here provide sample code using word embeddings to build a text classifier system.
+Complete project specification is available on the course's [GitHub page](https://github.com/epfml/ML_course/tree/master/projects/project2/project_text_classification).
 
-Submission system environment setup:
+## Dependencies
 
-1. The dataset is available from the Kaggle page, as linked in the PDF project description
+Following dependencies are required in order to run the project
 
- Download the provided datasets `twitter-datasets.zip`.
+### Libraries
 
-2. To submit your solution to the online evaluation system, we require you to prepare a “.csv” file of the same structure as sampleSubmission.csv (the order of the predictions does not matter, but make sure the tweet ids and predictions match). Your submission is evaluated according to the classification error (number of misclassified tweets) of your predictions.
+* [Anaconda3](https://www.anaconda.com/download/) - Download and install Anaconda with Python3
 
-*Working with Twitter data:* We provide a large set of training tweets, one tweet per line. All tweets in the file train pos.txt (and the train pos full.txt counterpart) used to have positive smileys, those of train neg.txt used to have a negative smiley. Additionally, the file test data.txt contains 10’000 tweets without any labels, each line numbered by the tweet-id.
+* [Scikit-Learn](http://scikit-learn.org/stable/install.html) - Download scikit-learn library with conda
+    ```sh
+    conda install scikit-learn
+    ```
 
-Your task is to predict the labels of these tweets, and upload the predictions to kaggle. Your submission file for the 10’000 tweets must be of the form `<tweet-id>`, `<prediction>`, see `sampleSubmission.csv`.
+* [Gensim](https://radimrehurek.com/gensim/) - Install Gensim library
+    ```sh
+    conda install gensim
+    ```
 
-Note that all tweets have already been pre-processed so that all words (tokens) are separated by a single whitespace. Also, the smileys (labels) have been removed.
+* [NLTK](http://www.nltk.org/data.html) - Download all the packages of NLTK
+    ```sh
+    python
+    >>> import nltk
+    >>> nltk.download()
+    ```
 
-## Classification using Word-Vectors
+### Files
 
-For building a good text classifier, it is crucial to find a good feature representation of the input text. Here we will start by using the word vectors (word embeddings) of each word in the given tweet. For simplicity of a first baseline, we will construct the feature representation of the entire text by simply averaging the word vectors.
+* Train tweets
 
-Below is a solution pipeline with an evaluation step:
+    [Download](https://www.kaggle.com/c/epfml17-text/data) `twitter-datasets.zip` containing positive and negative tweet files which are required during the model training phase. After unzipping, place the files obtained in the `./data/datasets` directory.
 
-### Generating Word Embeddings: 
+* Test tweets
 
-Load the training tweets given in `pos_train.txt`, `neg_train.txt` (or a suitable subset depending on RAM requirements), and construct a a vocabulary list of words appearing at least 5 times. This is done running the following commands. Note that the provided `cooc.py` script can take a few minutes to run, and displays the number of tweets processed.
+    [Download](https://www.kaggle.com/c/epfml17-text/data) `test_data.txt` containing tweets which are required for the testing of the trained model and obtaining score for submission to Kaggle. This file needs to be placed in the `./data/datasets` directory.
 
-```build_vocab.sh
-cut_vocab.sh
-python3 pickle_vocab.py
-python3 cooc.py```
+* Stanford Pretrained Glove Word Embeddings
 
-Now given the co-occurrence matrix and the vocabulary, it is not hard to train GloVe word embeddings, that is to compute an embedding vector for wach word in the vocabulary. We suggest to implement SGD updates to train the matrix factorization, as in
+    [Download](http://nlp.stanford.edu/data/glove.twitter.27B.zip) *Glove Pretrained Word Embeddings* which are used for training advanced sentiment analysis models. After unzipping, place the file `glove.twitter.27B.200d.txt` in the `./data/glove` directory.
 
-```glove_solution.py```
+## Hardware requirements
 
-Once you tested your system on the small set of 10% of all tweets, we suggest you run on the full datasets `pos_train_full.txt`, `neg_train_full.txt`
+* at least **16 GB** of RAM
+* a **graphics card** (optional for faster training involving CNNs)
 
-### Building a Text Classifier:
-1. Construct Features for the Training Texts: Load the training tweets and the built GloVe word embeddings. Using the word embeddings, construct a feature representation of each training tweet (by averaging the word vectors over all words of the tweet).
+## Kaggle competition
 
-2. Train a Linear Classifier: Train a linear classifier (e.g. logistic regression or SVM) on your constructed features, using the scikit learn library, or your own code from the earlier labs. Recall that the labels indicate if a tweet used to contain a :) or :( smiley.
+[Public Leaderboard](https://www.kaggle.com/c/epfml17-text/leaderboard) connected to this competition.
 
-3. Prediction: Predict labels for all tweets in the test set.
+Our team's name is **PUT THE TEAM NAME HERE**.
 
-4. Submission / Evaluation: Submit your predictions to kaggle, and verify the obtained misclassification error score. (You can also use a local separate validation set to get faster feedback on the accuracy of your system). Try to tune your system for best evaluation score.
+Team members:
 
-## Extensions:
-Naturally, there are many ways to improve your solution, both in terms of accuracy and computation speed. More advanced techniques can be found in the recent literature.
+* Dino Mujkić ([dinomujki](https://github.com/dinomujki))
+* Hrvoje Bušić ([hrvojebusic](https://github.com/hrvojebusic))
+* Sebastijan Stevanović ([sebastijan94](https://github.com/sebastijan94))
+
+## Reproducing our best result
+
+**PUT THE STEPS FOR REPRODUCING OUR BEST RESULT HERE**
+
+___
+
+This project is available under [MIT](https://opensource.org/licenses/MIT) license.
