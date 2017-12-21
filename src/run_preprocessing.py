@@ -21,7 +21,7 @@ def main():
             'tag_repeated_punctuations' : True,
             'expand_contractions' : True,
             'check_tweet_emphasis': False,
-            'split_hashtags' : False,
+            'split_hashtags' : True,
             'remove_stopwords' : False,
             'remove_small_words': False,
             'remove_numbers' : False,
