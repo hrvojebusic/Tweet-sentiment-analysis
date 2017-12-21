@@ -69,6 +69,13 @@ Team members:
 * Sebastijan Stevanović ([sebastijan94](https://github.com/sebastijan94))
 
 ## Reproducing our best result
+You can find already preprocessed tweet files `test_full.csv`, `train_neg_full.csv.zip` and `train_pos_full.csv.zip` in the `./data/parsed` directory.
+
+To run preprocessing again download Train tweets and Test tweets files, go to folder `/src` and run `run_preprocessing.py` with argument `train` or `test` to generate requried files for running the CNN.
+
+```sh
+$ python run_preprocessing.py train or test
+```
 
 To reproduce our best score from Kaggle go to folder `/src` and run `run_cnn.py` with argument `eval`
 
@@ -78,6 +85,7 @@ $ python run_cnn.py eval
 
 In `data/models/1513824111` directory is stored a checkpoint for reproducing our best score so the training part will be skipped. If you want to run the training process from scratch, just pass the argument `train` when runnig `run_cnn.py`.
 
+**To run the evaluation you must have the necessary files. File `glove.twitter.27B.200d.txt` in the `./data/glove` directory and preprocessed tweet files `test_full.csv`, `train_neg_full.csv` and `train_pos_full.csv` in the `./data/parsed` directory.**
 ___
 
 This project is available under [MIT](https://opensource.org/licenses/MIT) license.
