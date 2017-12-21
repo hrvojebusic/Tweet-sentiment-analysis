@@ -63,7 +63,7 @@ Tested on Ubuntu 16.04 with Nvidia Tesla K80 GPU with 12 GB GDDR5
 
 [Public Leaderboard](https://www.kaggle.com/c/epfml17-text/leaderboard) connected to this competition.
 
-Our team's name is **PUT THE TEAM NAME HERE**.
+Our team's name is **Bill Trader**.
 
 Team members:
 
