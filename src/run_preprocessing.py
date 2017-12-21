@@ -11,7 +11,7 @@ def main():
         return
 
     parameters = {
-            'filter_duplicates' : True,
+            'filter_duplicates' : False,
             'remove_url_tags' : False,
             'remove_user_tags' : False,
             'replace_emoticons_with_tags' : True,
@@ -31,7 +31,8 @@ def main():
             'stem' : False,
             'lemmatize' : False,
             'spell_unrecognized': False,
-            'remove_like': False
+            'remove_like': True,
+            'tag_all_words_with_digits': True
         }
 
     if sys.argv[1] == 'train':
