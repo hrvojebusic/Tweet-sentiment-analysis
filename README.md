@@ -29,7 +29,7 @@ Following dependencies are required in order to run the project:
     >>> nltk.download()
     ```
   
-* [Tensorflow] - Install tensorflow library (version used **1.4.1**)
+* [Tensorflow](https://www.tensorflow.org/get_started/os_setup) - Install tensorflow library (version used **1.4.1**)
 
     ```sh
     $ pip install tensorflow
