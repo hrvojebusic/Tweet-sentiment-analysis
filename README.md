@@ -70,7 +70,13 @@ Team members:
 
 ## Reproducing our best result
 
-**PUT THE STEPS FOR REPRODUCING OUR BEST RESULT HERE**
+To reproduce our best score from Kaggle go to folder `/src` and run `run_cnn.py` with argument `eval`
+
+```sh
+$ python run_cnn.py eval
+```
+
+In `data/models/1513824111` directory is stored a checkpoint for reproducing our best score so the training part will be skipped. If you want to run the training process from scratch, just pass the argument `train` when runnig `run_cnn.py`.
 
 ___
 
