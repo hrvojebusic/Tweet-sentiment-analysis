@@ -1,3 +1,6 @@
+# Preprocessed tweet files
+Go to our github project [page](https://github.com/dinomujki/project2) to download necessary files!!!
+
 # Tweet Sentiment Analysis
 
 The competition task was to predict if a tweet message used to contain a positive :) or a negative :( smiley, by considering only the remaining text. Our team conducted comprehensive research on the proposed solutions in the relevant literature, as well as past projects and articles which tackled similar issues regarding text sentiment analysis. Full specification of our experiments, as well as results and conclusions drawn can be found in our report.
