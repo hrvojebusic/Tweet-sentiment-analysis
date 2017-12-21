@@ -71,7 +71,7 @@ Team members:
 ## Reproducing our best result
 You can find already preprocessed tweet files `test_full.csv`, `train_neg_full.csv.zip` and `train_pos_full.csv.zip` in the `./data/parsed` directory.
 
-To run preprocessing again download Train tweets and Test tweets files, go to folder `/src` and run `run_preprocessing.py` with argument `train` or `test` to generate requried files for running the CNN.
+To run preprocessing again you must have Train tweets and Test tweets files in the `./data/dataset` directory. Then go to folder `/src` and run `run_preprocessing.py` with argument `train` or `test` to generate requried files for running the CNN.
 
 ```sh
 $ python run_preprocessing.py train or test
